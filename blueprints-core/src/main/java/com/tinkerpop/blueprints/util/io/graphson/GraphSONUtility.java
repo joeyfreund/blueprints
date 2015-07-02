@@ -1,21 +1,5 @@
 package com.tinkerpop.blueprints.util.io.graphson;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MappingJsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
-import com.tinkerpop.blueprints.Vertex;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-import org.codehaus.jettison.json.JSONTokener;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
@@ -28,7 +12,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.tinkerpop.blueprints.util.io.graphson.ElementPropertyConfig.ElementPropertiesRule;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+import org.codehaus.jettison.json.JSONTokener;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.io.graphson.ElementPropertyConfig.ElementPropertiesRule;
 
 /**
  * Helps write individual graph elements to TinkerPop JSON format known as GraphSON.
@@ -553,6 +553,10 @@ public class GraphSONUtility {
             if (value != null) {
                 if (value instanceof List) {
                     value = createJSONList((List) value, propertyKeys, showTypes);
+                } else if (value instanceof Iterable){
+                    value = createJSONList(getList((Iterable) value), propertyKeys, showTypes);
+                } else if (value instanceof Iterator){
+                    value = createJSONList(getList((Iterator) value), propertyKeys, showTypes);
                 } else if (value instanceof Map) {
                     value = createJSONMap((Map) value, propertyKeys, showTypes);
                 } else if (value instanceof Element) {
@@ -567,6 +571,18 @@ public class GraphSONUtility {
         }
         return jsonMap;
 
+    }
+    
+	private static List getList(final Iterable value) {
+        return getList(value.iterator());
+	}
+
+    private static List getList(final Iterator value) {
+        final List result = new ArrayList();
+        while (value.hasNext()) {
+            result.add(value.next());
+        }
+        return result;
     }
 
     private static void addObject(final ArrayNode jsonList, final Object value) {
